@@ -1,12 +1,13 @@
 package panjieke.sample.alexa.shopping;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazon.speech.json.SpeechletRequestEnvelope;
 import com.amazon.speech.slu.Intent;
 import com.amazon.speech.speechlet.*;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.SimpleCard;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ShoppingSpeechlet implements SpeechletV2 {
 
@@ -41,7 +42,7 @@ public class ShoppingSpeechlet implements SpeechletV2 {
         Intent intent = request.getIntent();
         String intentName = (intent != null) ? intent.getName() : null;
 
-        return getSpeechletResponse(intentName);
+        return getSimpleSpeechletResponse(intentName);
 
     }
 
@@ -63,7 +64,15 @@ public class ShoppingSpeechlet implements SpeechletV2 {
         return SpeechletResponse.newTellResponse(speech, card);
     }
 
-    private SpeechletResponse getSpeechletResponse(String intentName) {
+    private SpeechletResponse getSimpleSpeechletResponse(String intentName) {
+        if (SHOPPING_CART_INTENT.equals(intentName)) {
+            return getOpenShoppingCartResponse();
+        } else {
+            return getUnknownCommandResponse();
+        }
+    }
+
+    private SpeechletResponse getRepromptSpeechletResponse(String intentName) {
         if (SHOPPING_CART_INTENT.equals(intentName)) {
             return getOpenShoppingCartResponse();
         } else {
