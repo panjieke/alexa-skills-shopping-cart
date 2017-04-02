@@ -1,5 +1,6 @@
 package panjieke.sample.alexa.shopping;
 
+import com.amazon.speech.slu.Slot;
 import com.amazon.speech.ui.Reprompt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,13 @@ public class ShoppingSpeechlet implements SpeechletV2 {
 
     private static final Logger log = LoggerFactory.getLogger(ShoppingSpeechlet.class);
     private static final String SHOPPING_CART = "Shopping Cart";
-    private static final String SHOPPING_CART_INTENT = "ShoppingCartIntent";
+    private static final String GET_SHOPPING_CART_INTENT = "GetShoppingCartIntent";
+    private static final String ADD_SHOPPING_CART_INTENT = "AddShoppingCartIntent";
+    private static final String ITEM_NAME = "ItemName";
+    private static final String ITEM_COUNT = "ItemCount";
     private static final String STOP_INTENT = "AMAZON.StopIntent";
+    private static final String NO_INTENT = "AMAZON.NoIntent";
+    private static final String YES_INTENT = "AMAZON.YesIntent";
     private Map<String, Integer> shoppingCart = new HashMap<String, Integer>(){{ put("banana", 3); put("apple", 5); }};
 
     @Override
@@ -48,9 +54,13 @@ public class ShoppingSpeechlet implements SpeechletV2 {
         Intent intent = request.getIntent();
         String intentName = (intent != null) ? intent.getName() : null;
 
-        if (SHOPPING_CART_INTENT.equals(intentName)) {
-            return getRepromptSpeechletResponse(getMyShoppingList(), "Do you want to add something else?");
-        } else if (STOP_INTENT.equals(intentName)) {
+        if (GET_SHOPPING_CART_INTENT.equals(intentName)) {
+            return getRepromptSpeechletResponse(getMyShoppingList(), "You can add one more item.");
+        } else if (ADD_SHOPPING_CART_INTENT.equals(intentName)) {
+            Slot name = intent.getSlot(ITEM_NAME);
+            Slot count = intent.getSlot(ITEM_COUNT);
+            return getRepromptSpeechletResponse(count.getValue() + " " + name.getValue() + " has been added. Do you want to complete the purchase?", "Do you want to complete the purchase?");
+        } else if (STOP_INTENT.equals(intentName) || YES_INTENT.equals(intentName) || NO_INTENT.equals(intentName)) {
             return getGoodByeResponse();
         } else {
             return getUnknownCommandResponse();
@@ -92,13 +102,13 @@ public class ShoppingSpeechlet implements SpeechletV2 {
     }
 
     private SpeechletResponse getWelcomeResponse() {
-        return getRepromptSpeechletResponse("Welcome to Shopping Cart", "You can ask for your shopping list or add items");
+        return getRepromptSpeechletResponse("Welcome to Shopping Cart.", "You ask for your shopping list or add items.");
     }
 
     private String getMyShoppingList() {
         StringBuilder list = new StringBuilder().append("This is your usual shopping list:");
         for (String article : shoppingCart.keySet()) {
-            list.append(shoppingCart.get(article) + " " + article + " ");
+            list.append(" " + shoppingCart.get(article) + " " + article + ", ");
         }
 
         list.append("Do you want to add something else?");
@@ -118,10 +128,10 @@ public class ShoppingSpeechlet implements SpeechletV2 {
     }
 
     private SpeechletResponse getGoodByeResponse() {
-        return getSimpleSpeechletResponse("ByeBye");
+        return getSimpleSpeechletResponse("Thank you and ByeBye.");
     }
 
     private SpeechletResponse getUnknownCommandResponse() {
-        return getSimpleSpeechletResponse("I did not understand your command");
+        return getSimpleSpeechletResponse("I did not understand your command.");
     }
 }
